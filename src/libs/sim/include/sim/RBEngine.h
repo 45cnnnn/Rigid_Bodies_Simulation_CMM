@@ -293,7 +293,6 @@ protected:
         // P3D r = rb->state.pos;
         V3D r_a = V3D(P3D(0, -0.1, 0));
         V3D v = rb->state.velocity + rb->state.angularVelocity.cross(r_a);
-
         bool collisionDetected = (rb->state.pos[1] -0.1 < 0) && (v[1] < 0) ;  // TODO: change this!
         if (collisionDetected) {
             V3D impulse(0, 0, 0);
@@ -317,7 +316,7 @@ protected:
                 // K_b is zero matrix
                 Matrix3x3 K_T = Matrix3x3::Identity() / rb->rbProps.mass - r_ax * I.inverse() * r_ax;
                 V3D N(0, 1, 0);
-                impulse = -(1 + eps) * u_rel.dot(N) / (N.transpose() * K_T * N) *N;
+                impulse = -(1 + eps) * u_rel.dot(N) / (N.transpose() * K_T * N) * N;
             }
 
             // update velocity by impulse
