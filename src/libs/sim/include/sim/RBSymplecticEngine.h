@@ -36,8 +36,8 @@ public:
 
             rb->state.velocity += dt * f / rb->rbProps.mass;         // TODO: change this!
             Matrix3x3 R = rb->state.orientation.normalized().toRotationMatrix();
-            Matrix3x3 I_d = rb->rbProps.MOI_local;
-            Matrix3x3 I = R * I_d * R.transpose();
+            Matrix3x3 I_b = rb->rbProps.MOI_local;
+            Matrix3x3 I = R * I_b * R.transpose();
             V3D w_i = rb->state.angularVelocity;
             rb->state.angularVelocity += dt * I.inverse() * (tau - w_i.cross(V3D(I * w_i)));  // TODO: change this!
 

@@ -285,24 +285,44 @@ protected:
         // - the radius of the sphere is 0.1 m
         // - detect collision if 1) the y coordinate of the point at the
         // bottom of the sphere < 0 and 2) the y component of linear
-        // velocity of the point at the botton < 0.
+        // velocity of the point at the bottom < 0.
         // - we will assume that a collision only happens at the bottom
         // points.
         // - we will assume there's only one contact between a sphere
         // and the ground
+        // P3D r = rb->state.pos;
+        V3D r_a = V3D(P3D(0, -0.1, 0));
+        V3D v = rb->state.velocity + rb->state.angularVelocity.cross(r_a);
 
-        bool collisionDetected = false;  // TODO: change this!
+        bool collisionDetected = (rb->state.pos[1] -0.1 < 0) && (v[1] < 0) ;  // TODO: change this!
         if (collisionDetected) {
             V3D impulse(0, 0, 0);
+            V3D w_a = rb->state.angularVelocity;
+            Matrix3x3 R = rb->state.orientation.normalized().toRotationMatrix();
+            Matrix3x3 I_a = rb->rbProps.MOI_local;
+            Matrix3x3 I = R * I_a *  R.transpose();
             if (frictionalCollision) {
                 // TODO: compute infinite friction collision impulse
+                // double mu = 0.5;
+                V3D u_rel = rb->state.velocity + rb->state.angularVelocity.cross(r_a);
+                Matrix3x3 r_ax = getCrossProductMatrix(r_a);
+                Matrix3x3 K_T = Matrix3x3::Identity() / rb->rbProps.mass - r_ax * I.inverse() * r_ax;
+                V3D N(0, 1, 0);
+                impulse = K_T.inverse() * (-u_rel - eps * u_rel.dot(N) * N);
             } else {
                 // TODO: compute frictionless collision impulse
+                // Matrix3x3 I_a = rb->rbProps.MOI_local;
+                V3D u_rel = rb->state.velocity + rb->state.angularVelocity.cross(r_a);
+                Matrix3x3 r_ax = getCrossProductMatrix(V3D(r_a));
+                // K_b is zero matrix
+                Matrix3x3 K_T = Matrix3x3::Identity() / rb->rbProps.mass - r_ax * I.inverse() * r_ax;
+                V3D N(0, 1, 0);
+                impulse = -(1 + eps) * u_rel.dot(N) / (N.transpose() * K_T * N) *N;
             }
 
             // update velocity by impulse
-            rb->state.velocity += V3D(0, 0, 0);         // TODO: change this!
-            rb->state.angularVelocity += V3D(0, 0, 0);  // TODO: change this!
+            rb->state.velocity += impulse/rb->rbProps.mass;         // TODO: change this!
+            rb->state.angularVelocity += I.inverse() * (V3D(r_a).cross(impulse));  // TODO: change this!
         }
     }
 
