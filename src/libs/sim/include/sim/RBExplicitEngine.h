@@ -30,7 +30,7 @@ public:
             V3D f = f_ext[i];
             V3D tau = tau_ext[i];
 
-            // TODO: Ex.1 Numerical Integration
+            // TODO: Done! Ex.1 Numerical Integration
             // implement forward (explicit) Euler integration scheme for computing velocity.
             //
             // Hint:
@@ -38,18 +38,22 @@ public:
             // Quaternion updateRotationGivenAngularVelocity(const Quaternion &q, const V3D &angularVelocity, double dt)
             // in src/libs/sim/include/sim/RBEngine.h and use it for updating orientation of rigidbody.
             // - recall, you need to compute 3x3 moment of inertia matrix expressed in world frame.
-
-            rb->state.velocity = V3D();         // TODO: change this!
-            rb->state.angularVelocity = V3D();  // TODO: change this!
+            V3D v_i = rb->state.velocity;
+            rb->state.velocity += dt * f / rb->rbProps.mass;         // TODO: Done! change this!
+            Matrix3x3 R = rb->state.orientation.normalized().toRotationMatrix();
+            Matrix3x3 I_d = rb->rbProps.MOI_local;
+            Matrix3x3 I = R * I_d * R.transpose();
+            V3D w_i = rb->state.angularVelocity;
+            rb->state.angularVelocity += dt * I.inverse() * (tau - w_i.cross(V3D(I * w_i)));  // TODO: Done! change this!
 
             if (simulateCollisions && rb->rbProps.collision)
                 updateVelocityAfterCollision(rb);
 
-            // TODO: Ex.1 Numerical Integration
+            // TODO: Done! Ex.1 Numerical Integration
             // implement forward (explicit) Euler integration scheme for computing pose.
-            rb->state.pos = rb->state.pos + V3D() * dt;  // TODO: change this!
+            rb->state.pos = rb->state.pos + v_i * dt;  // TODO: Done! change this!
             rb->state.orientation = updateRotationGivenAngularVelocity(
-                rb->state.orientation, V3D(/*TODO: change this!*/), dt);
+                rb->state.orientation, w_i, dt);
         }
 
         // clean up

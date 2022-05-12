@@ -34,17 +34,21 @@ public:
             // why our simulation is blown up? let's make it more stable using
             // symplectic Euler integration!
 
-            rb->state.velocity = V3D();         // TODO: change this!
-            rb->state.angularVelocity = V3D();  // TODO: change this!
+            rb->state.velocity += dt * f / rb->rbProps.mass;         // TODO: change this!
+            Matrix3x3 R = rb->state.orientation.normalized().toRotationMatrix();
+            Matrix3x3 I_d = rb->rbProps.MOI_local;
+            Matrix3x3 I = R * I_d * R.transpose();
+            V3D w_i = rb->state.angularVelocity;
+            rb->state.angularVelocity += dt * I.inverse() * (tau - w_i.cross(V3D(I * w_i)));  // TODO: change this!
 
             if (simulateCollisions && rb->rbProps.collision)
                 updateVelocityAfterCollision(rb);
 
             // TODO: Ex.3 Stable Simulation
             // implement forward (explicit) Euler integration scheme for computing pose.
-            rb->state.pos = rb->state.pos + V3D() * dt;  // TODO: change this!
+            rb->state.pos = rb->state.pos + rb->state.velocity * dt;  // TODO: change this!
             rb->state.orientation = updateRotationGivenAngularVelocity(
-                rb->state.orientation, V3D(/*TODO: change this!*/), dt);
+                rb->state.orientation, rb->state.angularVelocity, dt);
         }
 
         // clean up

@@ -16,10 +16,17 @@ Quaternion updateRotationGivenAngularVelocity(const Quaternion &q,
     if (angularVelocityMagnitude > 1e-10) {
         Quaternion qnew;
 
-        // TODO: Ex.1 Integration
+        // TODO: Done! Ex.1 Integration
         // implement quaternion update logic
         // q_p = rot(w, dt) * q
-
+        
+        Quaternion rotquat;
+        rotquat.w() = cos(dt * angularVelocityMagnitude / 2);
+        V3D xyz = sin(dt * angularVelocityMagnitude / 2) * angularVelocity / angularVelocityMagnitude;
+        rotquat.x() = xyz[0];
+        rotquat.y() = xyz[1];
+        rotquat.z() = xyz[2];
+        qnew = rotquat * q;
         return qnew;
     }
     return q;
@@ -99,8 +106,9 @@ public:
             // Hint:
             // - you can get world coordinates of local coordinate P3D p by
             // rb->state.getWorldCoordinates(p).
-
-            springs.back()->l0 = 0;  // TODO: change this!
+            P3D pJPos_world = springs.back()->pJPos;
+            P3D cJPos_world = springs.back()->child->state.getWorldCoordinates(springs.back()->cJPos);
+            springs.back()->l0 = V3D(pJPos_world - cJPos_world).norm();  // TODO: change this!
         } else {
             // TODO: Ex.2-2
             // implement your logic for a spring where both ends are attached
@@ -110,8 +118,9 @@ public:
             // Hint:
             // - you can get world coordinates of local coordinate P3D p by
             // rb->state.getWorldCoordinates(p).
-
-            springs.back()->l0 = 0;  // TODO: change this!
+            P3D pJPos_world = springs.back()->parent->state.getWorldCoordinates(springs.back()->pJPos);
+            P3D cJPos_world = springs.back()->child->state.getWorldCoordinates(springs.back()->cJPos);
+            springs.back()->l0 = V3D(pJPos_world - cJPos_world).norm();  // TODO: change this!
         }
         return springs.back();
     }
@@ -222,11 +231,16 @@ protected:
                 // implement your logic for a spring which is attached to world
 
                 // force
-                V3D f(0, 0, 0);  // TODO: change this!
+                P3D pJPos = spring->pJPos;
+                P3D cJPos = spring->child->state.getWorldCoordinates(spring->cJPos);
+                double x = V3D(cJPos - pJPos).norm();
+                double x0 = spring->l0;
+                V3D f = -spring->k * (x - x0) * V3D(V3D(cJPos - pJPos).normalized());  // TODO: change this!
                 f_ext[spring->child->rbProps.id] += f;
 
                 // torque
-                V3D tau(0, 0, 0);  // TODO: change this!
+                V3D r = spring->child->state.getWorldCoordinates(V3D(spring->cJPos));
+                V3D tau = r.cross(f);  // TODO: change this!
                 tau_ext[spring->child->rbProps.id] += tau;
             } else {
                 // TODO: Ex.2-2
@@ -234,13 +248,19 @@ protected:
                 // to rigid bodies.
 
                 // force
-                V3D f(0, 0, 0);  // TODO: change this!
+                P3D pJPos = spring->parent->state.getWorldCoordinates(spring->pJPos);
+                P3D cJPos = spring->child->state.getWorldCoordinates(spring->cJPos);
+                double x = V3D(cJPos - pJPos).norm();
+                double x0 = spring->l0;
+                V3D f = -spring->k * (x - x0) * V3D(V3D(cJPos - pJPos).normalized());   // TODO: change this!
                 f_ext[spring->parent->rbProps.id] -= f;
                 f_ext[spring->child->rbProps.id] += f;
 
                 // torque
-                V3D tau1(0, 0, 0);  // TODO: change this!
-                V3D tau2(0, 0, 0);  // TODO: change this!
+                V3D r_parent = spring->parent->state.getWorldCoordinates(V3D(spring->pJPos));
+                V3D r_child = spring->child->state.getWorldCoordinates(V3D(spring->cJPos));
+                V3D tau1 = r_parent.cross(-f);  // TODO: change this!
+                V3D tau2 = r_child.cross(f);  // TODO: change this!
                 tau_ext[spring->parent->rbProps.id] += tau1;
                 tau_ext[spring->child->rbProps.id] += tau2;
             }

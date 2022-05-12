@@ -6,9 +6,9 @@
 
 Leave your name, student ID, ETH email address and URL link to demo video here.
 
-- Name:
-- Student ID:
-- ETH Email:
+- Name: Zhongrui Yu
+- Student ID: 21-947-841
+- ETH Email: zhonyu@student.ethz.ch
 - Your Answer for Ex.1:
 
 ----
@@ -29,7 +29,8 @@ Okay, to be honest, it's actually more like this. Does it look boring? Believe m
 
 Once you complete this assignment you should hand in
 - code pushed to your github repository.
-    
+  
+
 The grading scheme is as follows
 - baseline (80 %): based on your code, your answer in README (Ex.1).
 - advanced (20 %): based on your code and a demo video. 
