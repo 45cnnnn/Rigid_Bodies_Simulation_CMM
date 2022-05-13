@@ -14,7 +14,6 @@ Leave your name, student ID, ETH email address and URL link to demo video here.
   - I notice that as the simulation rate increased, the *simulated* trajectory get closer and closer to the *analytic* trajectory.
   - This is because when we implement explicit Euler method, we use linear and angular velocity at current time step `t_i` to update the position and orientation at the next time step `t_i + dt`, and as the the simulation rate increased, this approximation get more accurate.
 
-
 ----
 
 In this assignment, we will make a rigid body simulator somewhat like this.
